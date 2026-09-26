@@ -25,6 +25,19 @@ public class UserService {
 
         primaryUsers.add(user);
 
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000);
+
+                replicaUsers.add(user);
+
+                System.out.println("Replica updated: " + replicaUsers);
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
+
         System.out.println("Primary DB: " + primaryUsers);
         System.out.println("Replica DB: " + replicaUsers);
 

@@ -21,9 +21,7 @@ public class RpcClient {
 
                 String response = null;
 
-                try {
-
-                        Socket socket = new Socket(host, port);
+                try (Socket socket = new Socket(host, port)) {
 
                         socket.setSoTimeout(2000);
 
@@ -32,16 +30,30 @@ public class RpcClient {
                                         true);
 
                         BufferedReader reader = new BufferedReader(
-                                        new InputStreamReader(
-                                                        socket.getInputStream()));
+                                        new InputStreamReader(socket.getInputStream()));
 
-                        String request = "GET_USER " + id;
+                        while (response == null || response.equals("null")) {
 
-                        writer.println(request);
+                                System.out.println("Trying to read user...");
 
-                        response = reader.readLine();
+                                String request = "GET_USER " + id;
 
-                        socket.close();
+                                writer.println(request);
+
+                                response = reader.readLine();
+
+                                if (response == null || response.equals("null")) {
+
+                                        System.out.println("Data not available yet. Retrying...");
+
+                                        try {
+                                                Thread.sleep(500);
+                                        } catch (InterruptedException e) {
+                                                Thread.currentThread().interrupt();
+                                                break;
+                                        }
+                                }
+                        }
 
                 } catch (SocketTimeoutException e) {
                         System.out.println("Request timed out after 2 seconds");
@@ -79,7 +91,7 @@ public class RpcClient {
                 } catch (SocketTimeoutException e) {
                         System.out.println("Request timed out after 2 seconds");
                 }
-                
+
                 return response;
         }
 

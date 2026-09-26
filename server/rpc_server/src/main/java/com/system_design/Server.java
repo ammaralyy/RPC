@@ -57,7 +57,7 @@ public class Server {
 
                                                 System.out.println("Method result: " + result);
 
-                                                Thread.sleep(5000);
+                                                // Thread.sleep(5000);
 
                                                 writer.println(result);
 
@@ -87,7 +87,7 @@ public class Server {
 
                                                 System.out.println("Method result: " + result);
 
-                                                Thread.sleep(5000);
+                                                // Thread.sleep(5000);
 
                                                 writer.println(result);
                                         }
