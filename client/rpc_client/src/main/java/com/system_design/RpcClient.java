@@ -17,6 +17,23 @@ public class RpcClient {
                 this.port = port;
         }
 
+        public String ping() throws IOException {
+
+                try (Socket socket = new Socket(host, port)) {
+
+                        PrintWriter writer = new PrintWriter(
+                                        socket.getOutputStream(),
+                                        true);
+
+                        BufferedReader reader = new BufferedReader(
+                                        new InputStreamReader(socket.getInputStream()));
+
+                        writer.println("PING");
+
+                        return reader.readLine();
+                }
+        }
+
         public String getUser(int id) throws IOException {
 
                 String response = null;
@@ -66,11 +83,9 @@ public class RpcClient {
 
                 String response = null;
 
-                try {
+                try (Socket socket = new Socket(host, port)) {
 
-                        Socket socket = new Socket(host, port);
-
-                        socket.setSoTimeout(2000);
+                        socket.setSoTimeout(3000);
 
                         PrintWriter writer = new PrintWriter(
                                         socket.getOutputStream(),
@@ -80,11 +95,28 @@ public class RpcClient {
                                         new InputStreamReader(
                                                         socket.getInputStream()));
 
-                        String request = "CREATE_USER " + reqId + " " + id + " " + name;
+                        while (response == null || response.equals("null")) {
 
-                        writer.println(request);
+                                System.out.println("Trying to create user...");
 
-                        response = reader.readLine();
+                                String request = "CREATE_USER " + reqId + " " + id + " " + name;
+
+                                writer.println(request);
+
+                                response = reader.readLine();
+
+                                if (response == null || response.equals("null")) {
+
+                                        System.out.println("Can not craete user. Retrying...");
+
+                                        try {
+                                                Thread.sleep(500);
+                                        } catch (InterruptedException e) {
+                                                Thread.currentThread().interrupt();
+                                                break;
+                                        }
+                                }
+                        }
 
                         socket.close();
 

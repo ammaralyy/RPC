@@ -15,7 +15,7 @@ public class Server {
 
         public static void main(String[] args) throws IOException, InterruptedException {
 
-                int port = 8080;
+                int port = Integer.parseInt(args[0]);
 
                 ServerSocket serverSocket = new ServerSocket(port);
 
@@ -50,7 +50,15 @@ public class Server {
 
                                         UserService userService = new UserService();
 
-                                        if (method.equals("GET_USER")) {
+                                        if (method.equals("PING")) {
+
+                                                String result = "Server running on port " + port;
+
+                                                System.out.println("Method result: " + result);
+
+                                                writer.println(result);
+
+                                        } else if (method.equals("GET_USER")) {
 
                                                 int userId = Integer.parseInt(parts[1]);
                                                 String result = userService.getUser(userId);
@@ -87,7 +95,7 @@ public class Server {
 
                                                 System.out.println("Method result: " + result);
 
-                                                // Thread.sleep(5000);
+                                                Thread.sleep(2000);
 
                                                 writer.println(result);
                                         }
