@@ -9,9 +9,9 @@ import java.net.Socket;
 
 public class Server {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
-        int port = 4000;
+        int port = 8080;
 
         ServerSocket serverSocket = new ServerSocket(port);
 
@@ -52,6 +52,8 @@ public class Server {
             String result = userService.getUser(userId);
 
             System.out.println("Method result: " + result);
+
+            Thread.sleep(5000);
 
             writer.println(result);
         }
