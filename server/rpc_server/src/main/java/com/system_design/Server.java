@@ -6,60 +6,102 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Server {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+        private static final Map<String, String> processedRequests = new HashMap<>();
 
-        int port = 8080;
+        public static void main(String[] args) throws IOException, InterruptedException {
 
-        ServerSocket serverSocket = new ServerSocket(port);
+                int port = 8080;
 
-        System.out.println("Server started on port " + port);
-        System.out.println("Waiting for client...");
+                ServerSocket serverSocket = new ServerSocket(port);
 
-        Socket clientSocket = serverSocket.accept();
+                System.out.println("Server started on port " + port);
 
-        System.out.println("Client connected!");
+                while (true) {
 
-        BufferedReader reader =
-                new BufferedReader(
-                        new InputStreamReader(
-                                clientSocket.getInputStream()
-                        )
-                );
+                        System.out.println("Waiting for client...");
 
-        PrintWriter writer =
-                new PrintWriter(
-                        clientSocket.getOutputStream(),
-                        true
-                );
+                        Socket clientSocket = serverSocket.accept();
 
-        String request = reader.readLine();
+                        System.out.println("Client connected!");
 
-        System.out.println("Received: " + request);
+                        try {
 
-        // Example: GET_USER 42
-        String[] parts = request.split(" ");
+                                BufferedReader reader = new BufferedReader(
+                                                new InputStreamReader(clientSocket.getInputStream()));
 
-        String method = parts[0];
-        int userId = Integer.parseInt(parts[1]);
+                                PrintWriter writer = new PrintWriter(
+                                                clientSocket.getOutputStream(),
+                                                true);
 
-        UserService userService = new UserService();
+                                String request;
 
-        if (method.equals("GET_USER")) {
+                                while ((request = reader.readLine()) != null) {
 
-            String result = userService.getUser(userId);
+                                        System.out.println("Received: " + request);
 
-            System.out.println("Method result: " + result);
+                                        String[] parts = request.split(" ");
 
-            Thread.sleep(5000);
+                                        String method = parts[0];
 
-            writer.println(result);
+                                        UserService userService = new UserService();
+
+                                        if (method.equals("GET_USER")) {
+
+                                                int userId = Integer.parseInt(parts[1]);
+                                                String result = userService.getUser(userId);
+
+                                                System.out.println("Method result: " + result);
+
+                                                Thread.sleep(5000);
+
+                                                writer.println(result);
+
+                                        } else if (method.equals("CREATE_USER")) {
+
+                                                String reqId = parts[1];
+
+                                                int userId = Integer.parseInt(parts[2]);
+                                                String name = parts[3];
+
+                                                if (processedRequests.containsKey(reqId)) {
+
+                                                        System.out.println("Duplicate request detected: " + reqId);
+
+                                                        String previousResult = processedRequests.get(reqId);
+
+                                                        System.out.println(userService.getAllUsers());
+
+                                                        writer.println(previousResult);
+
+                                                        continue;
+                                                }
+
+                                                String result = userService.createUser(userId, name);
+
+                                                processedRequests.put(reqId, result);
+
+                                                System.out.println("Method result: " + result);
+
+                                                Thread.sleep(5000);
+
+                                                writer.println(result);
+                                        }
+                                }
+
+                        } catch (IOException e) {
+
+                                System.out.println("Client connection lost.");
+
+                        } finally {
+
+                                clientSocket.close();
+                        }
+                }
+
         }
-
-        clientSocket.close();
-        serverSocket.close();
-    }
-
 }

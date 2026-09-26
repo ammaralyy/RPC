@@ -5,43 +5,82 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class RpcClient {
 
-    private final String host;
-    private final int port;
+        private final String host;
+        private final int port;
 
-    public RpcClient(String host, int port) {
-        this.host = host;
-        this.port = port;
-    }
+        public RpcClient(String host, int port) {
+                this.host = host;
+                this.port = port;
+        }
 
-    public String getUser(int id) throws IOException {
+        public String getUser(int id) throws IOException {
 
-        Socket socket = new Socket(host, port);
+                String response = null;
 
-        PrintWriter writer =
-                new PrintWriter(
-                        socket.getOutputStream(),
-                        true
-                );
+                try {
 
-        BufferedReader reader =
-                new BufferedReader(
-                        new InputStreamReader(
-                                socket.getInputStream()
-                        )
-                );
+                        Socket socket = new Socket(host, port);
 
-        String request = "GET_USER " + id;
+                        socket.setSoTimeout(2000);
 
-        writer.println(request);
+                        PrintWriter writer = new PrintWriter(
+                                        socket.getOutputStream(),
+                                        true);
 
-        String response = reader.readLine();
+                        BufferedReader reader = new BufferedReader(
+                                        new InputStreamReader(
+                                                        socket.getInputStream()));
 
-        socket.close();
+                        String request = "GET_USER " + id;
 
-        return response;
-    }
-    
+                        writer.println(request);
+
+                        response = reader.readLine();
+
+                        socket.close();
+
+                } catch (SocketTimeoutException e) {
+                        System.out.println("Request timed out after 2 seconds");
+                }
+
+                return response;
+        }
+
+        public String createUser(String reqId, int id, String name) throws IOException {
+
+                String response = null;
+
+                try {
+
+                        Socket socket = new Socket(host, port);
+
+                        socket.setSoTimeout(2000);
+
+                        PrintWriter writer = new PrintWriter(
+                                        socket.getOutputStream(),
+                                        true);
+
+                        BufferedReader reader = new BufferedReader(
+                                        new InputStreamReader(
+                                                        socket.getInputStream()));
+
+                        String request = "CREATE_USER " + reqId + " " + id + " " + name;
+
+                        writer.println(request);
+
+                        response = reader.readLine();
+
+                        socket.close();
+
+                } catch (SocketTimeoutException e) {
+                        System.out.println("Request timed out after 2 seconds");
+                }
+                
+                return response;
+        }
+
 }
